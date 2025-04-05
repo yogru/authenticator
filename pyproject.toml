@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "authenticator"
+version = "0.1.0"
+description = ""
+authors = ["kyb_home <kyb07@o2o.kr>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.12"
+uvicorn = {extras = ["standard"], version = "^0.34.0"}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.40"}
+aiosqlite = "^0.21.0"
+asyncpg = "^0.30.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
