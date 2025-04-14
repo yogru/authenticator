@@ -1,6 +1,7 @@
 from src.async_sqlalchemy_uow import AsyncSqlAlchemyUow
 from src.domain.model.user_auth_entity import UserAuthEntity
 from src.infra.env import EnvSettings
+from src.infra.hash import BCrypt
 from src.usecase.dto.user_auth_dto import SimpleUserAuthDto
 
 
@@ -11,6 +12,7 @@ class UserAuthSyncUseCase:
                  ):
         self.env = env
         self.uow = uow
+        self.bcrpy = BCrypt()
 
     async def sync_user(self,
                         username: str,
@@ -24,7 +26,7 @@ class UserAuthSyncUseCase:
             if found_user is None:
                 found_user = UserAuthEntity(
                     username=username,
-                    password=password,
+                    password=self.bcrpy.hash_password(plain_password=password),
                 )
             found_user.sync_service(service_name=service_name)
             self.uow.add(found_user)

@@ -40,6 +40,12 @@ class UserAuthEntity(BaseEntity):
         self.services.append(ret)
         return ret
 
+    def check_service(self, service_name) -> bool:
+        for service in self.services:
+            if service.service_name == service_name:
+                return True
+        return False
+
 
 class UserAuthServiceEntity(BaseEntity):
     __tablename__ = "user_auth_service"

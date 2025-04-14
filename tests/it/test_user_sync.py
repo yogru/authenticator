@@ -5,7 +5,7 @@ from src.usecase.user_auth_usecase import UserAuthUseCase
 
 
 @pytest.mark.asyncio
-async def test_create_token(
+async def test_user_sync(
         user_auth_sync_usecase: UserAuthSyncUseCase,
         user_auth_usecase: UserAuthUseCase
 ):
