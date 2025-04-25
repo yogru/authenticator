@@ -46,3 +46,26 @@ class UserAuthUseCase:
             self.uow.add(user)
             await self.uow.commit()
             return jwt_dto
+
+    async def refresh_token(self, refresh_token: str) -> JwtTokenDto:
+        async with self.uow:
+            exception = UseCaseException("invalid token", http_status_code=401)
+            payload = self.jwt_token_service.decode_token(
+                jwt_token=refresh_token
+            )
+            if payload is None:
+                raise exception
+
+            user = await self.uow.user_auth_repository.get_user_by_username(
+                username=payload.sub
+            )
+            if not user:
+                raise exception
+
+            user.check_refresh_token(refresh_token=refresh_token)
+            jwt_dto = self.jwt_token_service.create_jwt_token(
+                user=user,
+            )
+            self.uow.add(user)
+            await self.uow.commit()
+            return jwt_dto

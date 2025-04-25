@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
+from src.infra.exception import DomainException
 from src.infra.persistence.sqlalchemy.base_entity import BaseEntity
 
 
@@ -33,6 +34,11 @@ class UserAuthEntity(BaseEntity):
         pre_refresh_token = self.refresh_token
         self.refresh_token = refresh_token
         return pre_refresh_token
+
+    def check_refresh_token(self, refresh_token: str):
+        if self.refresh_token != refresh_token:
+            raise DomainException("Refresh Token Mismatch", http_status_code=401)
+
 
 
 class UserAuthServiceEntity(BaseEntity):

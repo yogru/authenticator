@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 from src.domain.model.user_auth_entity import UserAuthEntity
@@ -15,6 +17,10 @@ class JwtTokenService:
     def __init__(self, jwt: JwtAuthenticator, jwt_validator: JwtValidator):
         self.jwt = jwt
         self.jwt_validator = jwt_validator
+
+    def decode_token(self, jwt_token: str) -> Optional[JwtTokenDto]:
+        payload = self.jwt_validator.decode_token(token=jwt_token)
+        return payload
 
     def setup_refresh_token(self, user: UserAuthEntity) -> UserAuthEntity:
         payload = self.jwt_validator.decode_token(token=user.refresh_token)
