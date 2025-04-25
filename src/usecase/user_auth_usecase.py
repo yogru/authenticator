@@ -1,9 +1,11 @@
 from src.async_sqlalchemy_uow import AsyncSqlAlchemyUow
+from src.domain.service.jwt_token_service import JwtTokenService, JwtTokenDto
 from src.infra.env import EnvSettings
 from src.infra.exception import UseCaseException
 from src.infra.hash import BCrypt
 from src.infra.jwt.jwt_authenticator import JwtAuthenticator
 from src.infra.jwt.jwt_dto import CreateJwtTokenDto
+from src.infra.jwt.jwt_validator import JwtValidator
 
 
 class UserAuthUseCase:
@@ -13,13 +15,16 @@ class UserAuthUseCase:
                  ):
         self.env = env
         self.bcrpy = BCrypt()
-        self.jwt = JwtAuthenticator(env=env)
+        self.jwt_token_service = JwtTokenService(
+            jwt=JwtAuthenticator(env=env),
+            jwt_validator=JwtValidator(env=env),
+        )
         self.uow = uow
 
     async def create_token(self,
                            username: str,
                            service_name: str,
-                           password: str):
+                           password: str) -> JwtTokenDto:
         async with self.uow:
             user = await self.uow.user_auth_repository.get_user_by_username(
                 username=username
@@ -35,17 +40,8 @@ class UserAuthUseCase:
             if not check_service:
                 raise exception
 
-            user.deactivate_all_tokens()
-            create_token_dto = CreateJwtTokenDto(
-                sub=username
-            )
-            jwt_dto = self.jwt.create_token(
-                access_payload=create_token_dto,
-                refresh_payload=create_token_dto
-            )
-            user.create_token(
-                access_token=jwt_dto.access_token,
-                refresh_token=jwt_dto.refresh_token,
+            jwt_dto = self.jwt_token_service.create_jwt_token(
+                user=user,
             )
             self.uow.add(user)
             await self.uow.commit()
