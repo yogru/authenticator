@@ -8,31 +8,23 @@ from src.usecase.user_auth_usecase import UserAuthUseCase
 
 
 @pytest.fixture(scope="session")
-def test_env() -> EnvSettings:
+async def test_env() -> EnvSettings:
     env = EnvSettings.load_test_env()
+    drop_tables(env)
+    create_tables(env)
     return env
 
 
-@pytest.fixture(scope="session")
-def persistence(test_env: EnvSettings):
-    """
-        여기서 디비 한 번 날리고 시작함.
-    """
-    drop_tables(test_env)
-    create_tables(test_env)
-    return create_persistence(test_env)  # 비동기 엔진 생성
-
-
 @pytest.fixture(scope="function")
-def uow(persistence) -> AsyncSqlAlchemyUow:
-    async_engine, session_maker = persistence
+async def uow(test_env) -> AsyncSqlAlchemyUow:
+    async_engine, session_maker = create_persistence(test_env)
     return AsyncSqlAlchemyUow(
         session_factory=session_maker,
     )
 
 
 @pytest.fixture(scope="function")
-def user_auth_usecase(
+async def user_auth_usecase(
         test_env: EnvSettings,
         uow: AsyncSqlAlchemyUow,
 
@@ -44,7 +36,7 @@ def user_auth_usecase(
 
 
 @pytest.fixture(scope="function")
-def user_auth_sync_usecase(
+async def user_auth_sync_usecase(
         test_env: EnvSettings,
         uow: AsyncSqlAlchemyUow,
 ) -> UserAuthSyncUseCase:
