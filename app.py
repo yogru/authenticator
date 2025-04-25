@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 
+from src.present.rest.v1.sync_router import rt as sync_router
+
 app = FastAPI(
     title="authenticator",
     description="authenticator",
@@ -28,3 +30,6 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"message": "Authenticator API"}
+
+
+app.include_router(sync_router, prefix='/api/v1')

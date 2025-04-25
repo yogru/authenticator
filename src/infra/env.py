@@ -12,6 +12,7 @@ class EnvSettings(BaseSettings):
     ENV_TYPE: EnvironmentType = 'local'
     CORN_HOST: str = "0.0.0.0"
     UVICORN_PORT: int = 9200
+    X_INTERNAL_SECRET: str = '?????'
 
     ### DATABASE
     DB_USER: str = "postgres"
