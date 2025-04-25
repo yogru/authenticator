@@ -14,25 +14,28 @@ class JwtValidator:
     def __init__(self, env: EnvSettings):
         self.env = env
 
-    def decode_token(self, token: str) -> Optional[JwtPayload]:
+    def decode_token(self, token: str, aud: str) -> Optional[JwtPayload]:
         try:
             if not token or token.strip() == "":
                 return None
-            payload = jwt.decode(token, self.env.TOKEN_SECRET_KEY, algorithms=[self.env.TOKEN_ALGORITHM])
+            payload = jwt.decode(token, self.env.TOKEN_SECRET_KEY, algorithms=[self.env.TOKEN_ALGORITHM], audience=aud)
             username: str = payload.get("sub")
             exp = payload.get('exp')
-
-            if username is None or exp is None:
+            aud = payload.get('aud')
+            if username is None:
                 return None
+
             return JwtPayload(
-                sub=payload.get('sub'),
-                exp=payload.get('exp')
+                sub=username,
+                exp=exp,
+                aud=aud,
             )
         except ExpiredSignatureError:
             # 명확히 만료 처리
             print("Token expired")
             return None
         except InvalidTokenError as e:
+            print("뭐냐> ", e)
             return None
 
 
@@ -48,7 +51,8 @@ def validate_token(self, token: str) -> JwtPayload:
             )
         return JwtPayload(
             sub=payload.get('sub'),
-            exp=payload.get('exp')
+            exp=payload.get('exp'),
+            aud=payload.get('aud'),
         )
     except ExpiredSignatureError:
         # 명확히 만료 처리

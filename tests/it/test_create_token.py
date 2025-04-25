@@ -10,7 +10,7 @@ async def test_create_token_case0(
         user_auth_sync_usecase: UserAuthSyncUseCase,
         user_auth_usecase: UserAuthUseCase
 ):
-    username = 'testMaq12n'
+    username = 'testM22aq12n'
     password = '1212PASSWORD>'
     service_name = 'test'
     created_user = await user_auth_sync_usecase.sync_user(
@@ -24,8 +24,6 @@ async def test_create_token_case0(
         service_name=service_name,
         password=password,
     )
-
-    print("토큰 한 번 볼까??> ", token)
     assert token is not None
     assert created_user is not None
     assert username == created_user.username
@@ -40,7 +38,7 @@ async def test_create_token_case1(
 ):
     username = 'tesddftMaq13432n'
     password = '1212PASSWORD>'
-    service_name = 'test'
+    service_name = 'test1212'
     created_user = await user_auth_sync_usecase.sync_user(
         username=username,
         password=password,

@@ -1,10 +1,10 @@
 from src.async_sqlalchemy_uow import AsyncSqlAlchemyUow
-from src.domain.service.jwt_token_service import JwtTokenService, JwtTokenDto
+from src.domain.service.jwt_token_service import JwtTokenService
 from src.infra.env import EnvSettings
 from src.infra.exception import UseCaseException
 from src.infra.hash import BCrypt
 from src.infra.jwt.jwt_authenticator import JwtAuthenticator
-from src.infra.jwt.jwt_dto import CreateJwtTokenDto
+from src.infra.jwt.jwt_dto import JwtToken
 from src.infra.jwt.jwt_validator import JwtValidator
 
 
@@ -24,7 +24,7 @@ class UserAuthUseCase:
     async def create_token(self,
                            username: str,
                            service_name: str,
-                           password: str) -> JwtTokenDto:
+                           password: str) -> JwtToken:
         async with self.uow:
             user = await self.uow.user_auth_repository.get_user_by_username(
                 username=username
@@ -42,16 +42,21 @@ class UserAuthUseCase:
 
             jwt_dto = self.jwt_token_service.create_jwt_token(
                 user=user,
+                service_name=service_name,
             )
             self.uow.add(user)
             await self.uow.commit()
             return jwt_dto
 
-    async def refresh_token(self, refresh_token: str) -> JwtTokenDto:
+    async def refresh_token(self, refresh_token: str) -> JwtToken:
         async with self.uow:
             exception = UseCaseException("invalid token", http_status_code=401)
+            unverified_payload = self.jwt_token_service.get_unverified_claims(
+                token=refresh_token
+            )
             payload = self.jwt_token_service.decode_token(
-                jwt_token=refresh_token
+                jwt_token=refresh_token,
+                aud=unverified_payload.get('aud'),
             )
             if payload is None:
                 raise exception
@@ -65,6 +70,7 @@ class UserAuthUseCase:
             user.check_refresh_token(refresh_token=refresh_token)
             jwt_dto = self.jwt_token_service.create_jwt_token(
                 user=user,
+                service_name=payload.aud
             )
             self.uow.add(user)
             await self.uow.commit()
