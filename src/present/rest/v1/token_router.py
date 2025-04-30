@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from src.dependencies import get_user_auth_usecase
 from src.infra.jwt.jwt_dto import JwtToken
 from src.infra.presentation.rest_res import RestResponse
-from src.present.rest.v1.dto.token import LoginReq
+from src.present.rest.v1.dto.token import LoginReq, RefreshTokenReq
 from src.usecase.user_auth_usecase import UserAuthUseCase
 
 rt = APIRouter(tags=["token_router"])
@@ -20,3 +20,14 @@ async def login(
         service_name=req.service_name,
     )
     return RestResponse.success(data=ret)
+
+
+@rt.post("/refresh")
+async def refresh(
+        req: RefreshTokenReq,
+        user_auth_usecase: UserAuthUseCase = Depends(get_user_auth_usecase),
+) -> RestResponse[JwtToken]:
+    res = await user_auth_usecase.refresh_token(
+        refresh_token=req.refresh_token,
+    )
+    return RestResponse.success(data=res)
